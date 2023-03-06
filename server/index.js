@@ -27,6 +27,54 @@ app.get("/channels", async (req, res) => {
   const channels = await Channel.find();
   res.send(channels);
 });
+const messageSchema = new mongoose.Schema(
+  {
+    text: {
+      type: String,
+      required: true,
+      minLength: 1,
+    },
+    user: {
+      name: {
+        type: String,
+        required: true,
+      },
+      image: {
+        type: String,
+        required: true,
+      },
+    },
+    channelId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "channels",
+    },
+  },
+  { timestamps: true }
+);
+const Message = mongoose.model("messages", messageSchema);
+
+app.get("/channels/:id", async (req, res) => {
+  await Message.insertMany([
+    {
+      text: "första meddelandet",
+      user: {
+        name: "Matheus",
+        image: "https://avatars.githubusercontent.com/u/77362975?v=4",
+      },
+      channelId: "64007ab37ec7d1638acdfdfd",
+    },
+    {
+      text: "andra meddelandet",
+      user: {
+        name: "Matheus",
+        image: "https://avatars.githubusercontent.com/u/77362975?v=4",
+      },
+      channelId: "64007ab37ec7d1638acdfdfd",
+    },
+  ]);
+  const messages = await Message.find();
+  res.send(messages);
+});
 
 app.listen(3000, async () => {
   await mongoose.connect(
