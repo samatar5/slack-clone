@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const app = express();
 import cors from "cors";
 app.use(cors({ origin: "*" }));
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("hej då");
@@ -23,7 +24,6 @@ const channelsSchema = new mongoose.Schema(
 const Channel = mongoose.model("channels", channelsSchema);
 
 app.get("/channels", async (req, res) => {
-  //   await Channel.insertMany([{ name: "batch 5" }, { name: "general" }]);
   const channels = await Channel.find();
   res.send(channels);
 });
@@ -54,26 +54,27 @@ const messageSchema = new mongoose.Schema(
 const Message = mongoose.model("messages", messageSchema);
 
 app.get("/channels/:id", async (req, res) => {
-  await Message.insertMany([
-    {
-      text: "första meddelandet",
-      user: {
-        name: "Matheus",
-        image: "https://avatars.githubusercontent.com/u/77362975?v=4",
-      },
-      channelId: "64007ab37ec7d1638acdfdfd",
+  const channel = await Channel.findById(req.params.id);
+  const messages = await Message.find({ channelId: req.params.id }).sort({
+    createdAt: "desc",
+  });
+
+  res.send({ channel, messages });
+});
+
+app.post("/channels/:id", async (req, res) => {
+  console.log(req.body);
+  await Message.create({
+    text: req.body.text,
+    user: {
+      name: req.body.username,
+      image:
+        "https://api.dicebear.com/5.x/adventurer/svg?seed=Mia" +
+        req.body.username,
     },
-    {
-      text: "andra meddelandet",
-      user: {
-        name: "Matheus",
-        image: "https://avatars.githubusercontent.com/u/77362975?v=4",
-      },
-      channelId: "64007ab37ec7d1638acdfdfd",
-    },
-  ]);
-  const messages = await Message.find();
-  res.send(messages);
+    channelId: req.params.id,
+  });
+  res.send("ok");
 });
 
 app.listen(3000, async () => {
